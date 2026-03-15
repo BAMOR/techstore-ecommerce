@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query"
 import { getProducts } from "../services/getProducts"
 import { useCart } from "../hooks/useCart"
+import { useMemo, useState } from "react"
+import { SearchInput } from "../components/SearchInput"
 
 
 export const HomePage = () => {
@@ -9,6 +11,18 @@ export const HomePage = () => {
     queryFn: () => getProducts(),
     staleTime: 1000 * 60 * 5
   })
+
+  const [searchTerm, setSearchTerm] = useState('');
+
+
+  const filteredProducts = useMemo(()=> {
+    if(!data) return []
+    if(!searchTerm) return data
+
+    return data.filter(product =>
+        product.title.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  },[data, searchTerm])
 
   const {dispatch} = useCart()
 
@@ -19,8 +33,10 @@ export const HomePage = () => {
                 <p className="text-slate-500 mt-2">Tecnología de última generación a tu alcance.</p>
             </header>
 
+            <SearchInput onSearch={(term)=>setSearchTerm(term)}/>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                {data?.map(product => (
+                {filteredProducts?.map(product => (
                     <div key={product.id} className="group bg-white border border-slate-100 rounded-2xl p-4 transition-all hover:shadow-xl hover:shadow-slate-200/50 flex flex-col">
                         <div className="aspect-square mb-4 overflow-hidden rounded-xl bg-slate-50 flex items-center justify-center p-6">
                             <img
